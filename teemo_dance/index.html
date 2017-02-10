@@ -1,0 +1,611 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="model/17_5.js?2"></script>
+<script type="text/javascript" src="gl-matrix-min.js"></script>
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="stats.min.js"></script>
+<title>Teemo</title>
+
+</head>
+<body onload="webGLStart();" style="margin:0px; padding:0px;">
+    <canvas id="webgl-canvas" style="border: none;" width="1024" height="768"></canvas>
+</body>
+
+<script>
+
+// FPS FRAME
+var stats = new Stats();
+stats.setMode(0);
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0';
+stats.domElement.style.top = '0';
+document.body.appendChild( stats.domElement );
+
+
+// LOAD MODEL
+var teemo_indeces = new Array();
+var teemo_vertices = new Array();
+var teemo_colors = new Array();
+var teemo_texture = new Array();
+
+var i=0;
+while (i < model_17_5._vertices.length)
+{
+	var v = model_17_5._vertices[i];
+	v.bones = v.b;
+	v.weights = new  Array();
+	for (var k=0; k<v.w.length; k++) {
+		v.weights[k] = v.w[k]/1000.0;
+	}
+	v.position = vec4.create();
+	v.normal = vec4.create();
+	v.position[0] = v.s[0]/1000.0;
+	v.position[1] = v.s[1]/1000.0;
+	v.position[2] = v.s[2]/1000.0;
+	v.position[3] = v.s[3]/1000.0;
+	
+	v.normal[0] = v.s[4]/1000.0;
+	v.normal[1] = v.s[5]/1000.0;
+	v.normal[2] = v.s[6]/1000.0;
+	v.normal[3] = v.s[7]/1000.0;
+	
+	v.u = v.s[8]/1000.0;
+	v.v = v.s[9]/1000.0;
+	i++;
+}
+
+
+i=0;
+while (i < model_17_5._indices.length)
+{
+	teemo_indeces[i] = model_17_5._indices[i];
+	i++;
+}
+
+i=0;
+while (i < model_17_5._vertices.length)
+{
+	var v = model_17_5._vertices[i];
+	teemo_vertices[3*i] = v.position[0];
+	teemo_vertices[3*i+1] = v.position[1];
+	teemo_vertices[3*i+2] = v.position[2];
+	teemo_colors[3*i] = v.normal[0];
+	teemo_colors[3*i+1] = v.normal[1];
+	teemo_colors[3*i+2] = v.normal[2];
+	teemo_texture[2*i] = v.u;
+	teemo_texture[2*i+1] = -v.v;
+	i++;
+}
+
+model_17_5.anim = model_17_5._animations[0];
+model_17_5.anim.duration = Math.floor((1000 * model_17_5.anim.bones[0].f.length / model_17_5.anim.fps));
+
+i=0;
+while (i < model_17_5.anim.bones.length)
+{
+	var b = model_17_5.anim.bones[i];
+	
+	var j=0;
+	b.frames = new Array();
+	while(j<b.f.length) {
+		
+		var pos = quat.create();
+        var rot = quat.create();
+		
+		pos[0] = b.f[j].v[0]/1000;
+		pos[1] = b.f[j].v[1]/1000;
+		pos[2] = b.f[j].v[2]/1000;
+		pos[3] = b.f[j].v[3]/1000;
+		
+		rot[0] = b.f[j].v[4]/1000;
+		rot[1] = b.f[j].v[5]/1000;
+		rot[2] = b.f[j].v[6]/1000;
+		rot[3] = b.f[j].v[7]/1000;
+		
+		b.frames[j] = {
+			"pos":pos, "rot":rot
+		}
+		j++;
+	}
+	i++;
+}
+
+model_17_5.bone_name_index =  new Array();
+model_17_5.transforms =  new Array();
+
+for (var i = 0; i < model_17_5._bones.length; i++ )
+{
+	model_17_5.bone_name_index[model_17_5._bones[i].name] = i;
+	model_17_5.transforms[i] = mat4.create();
+	
+	model_17_5._bones[i].name
+	model_17_5._bones[i].baseMatrix = mat4.create();
+	for (var j=0; j<16; j++) {
+		model_17_5._bones[i].baseMatrix[j] = model_17_5._bones[i].bm[j]/1000;
+	}
+}
+
+function prependTranslation(param1, param2)
+{
+	var v1 = mat4.create();
+	mat4.copy(v1, param1)
+	v1[3] = v1[3] + (param2[0] * v1[0] + param2[1] * v1[1] + param2[2] * v1[2]);
+	v1[7] = v1[7] + (param2[0] * v1[4] + param2[1] * v1[5] + param2[2] * v1[6]);
+	v1[11] = v1[11] + (param2[0] * v1[8] + param2[1] * v1[9] + param2[2] * v1[10]);
+	v1[15] = v1[15] + (param2[0] * v1[12] + param2[1] * v1[13] + param2[2] * v1[14]);
+	return v1;
+}// end function
+
+function fromModelVector(param1, param2)
+{
+	var _temp_3 = param2[0] * 2;
+	var _temp_4 = param2[1] * 2;
+	var _temp_5 = param2[2] * 2;
+	var _temp_6 = param2[3] * _temp_3;
+	var _temp_7 = param2[3] * _temp_4;
+	var _temp_8 = param2[3] * _temp_5;
+	var _temp_9 = param2[0] * _temp_3;
+	var _temp_10 = param2[0] * _temp_4;
+	var _temp_11 = param2[0] * _temp_5;
+	var _temp_12 = param2[1] * _temp_4;
+	var _temp_13 = param2[1] * _temp_5;
+	var _temp_14 = param2[2] * _temp_5;
+	param1[0] = 1 - (_temp_12 + _temp_14);
+	param1[1] = _temp_10 - _temp_8;
+	param1[2] = _temp_11 + _temp_7;
+	param1[3] = 0;
+	param1[4] = _temp_10 + _temp_8;
+	param1[5] = 1 - (_temp_9 + _temp_14);
+	param1[6] = _temp_13 - _temp_6;
+	param1[7] = 0;
+	param1[8] = _temp_11 - _temp_7;
+	param1[9] = _temp_13 + _temp_6;
+	param1[10] = 1 - (_temp_9 + _temp_12);
+	param1[11] = 0;
+	param1[12] = 0;
+	param1[13] = 0;
+	param1[14] = 0;
+	param1[15] = 1;
+	return param1;
+}// end function
+
+function multiply(v1, v2)
+{
+	var v3 = mat4.create();
+
+	v3[0] = v1[0] * v2[0] + v1[1] * v2[4] + v1[2] * v2[8] + v1[3] * v2[12];
+	v3[1] = v1[0] * v2[1] + v1[1] * v2[5] + v1[2] * v2[9] + v1[3] * v2[13];
+	v3[2] = v1[0] * v2[2] + v1[1] * v2[6] + v1[2] * v2[10] + v1[3] * v2[14];
+	v3[3] = v1[0] * v2[3] + v1[1] * v2[7] + v1[2] * v2[11] + v1[3] * v2[15];
+	v3[4] = v1[4] * v2[0] + v1[5] * v2[4] + v1[6] * v2[8] + v1[7] * v2[12];
+	v3[5] = v1[4] * v2[1] + v1[5] * v2[5] + v1[6] * v2[9] + v1[7] * v2[13];
+	v3[6] = v1[4] * v2[2] + v1[5] * v2[6] + v1[6] * v2[10] + v1[7] * v2[14];
+	v3[7] = v1[4] * v2[3] + v1[5] * v2[7] + v1[6] * v2[11] + v1[7] * v2[15];
+	v3[8] = v1[8] * v2[0] + v1[9] * v2[4] + v1[10] * v2[8] + v1[11] * v2[12];
+	v3[9] = v1[8] * v2[1] + v1[9] * v2[5] + v1[10] * v2[9] + v1[11] * v2[13];
+	v3[10] = v1[8] * v2[2] + v1[9] * v2[6] + v1[10] * v2[10] + v1[11] * v2[14];
+	v3[11] = v1[8] * v2[3] + v1[9] * v2[7] + v1[10] * v2[11] + v1[11] * v2[15];
+	v3[12] = v1[12] * v2[0] + v1[13] * v2[4] + v1[14] * v2[8] + v1[15] * v2[12];
+	v3[13] = v1[12] * v2[1] + v1[13] * v2[5] + v1[14] * v2[9] + v1[15] * v2[13];
+	v3[14] = v1[12] * v2[2] + v1[13] * v2[6] + v1[14] * v2[10] + v1[15] * v2[14];
+	v3[15] = v1[12] * v2[3] + v1[13] * v2[7] + v1[14] * v2[11] + v1[15] * v2[15];
+
+	return v3;
+}// end function
+
+function calc(param1, param3, param4, mr, mab)
+{
+	var matrix = mat4.create();
+	var tmpMat = mat4.create();
+	var tmpVec = quat.create();
+	var tmpQuat = quat.create();
+	mab._parent = mr._bones[param1].parent;
+	
+	mat4.identity(matrix);
+
+	if (param3 >= (mab.frames.length - 1))
+	{
+		quat.lerp(tmpVec, mab.frames[(mab.frames.length - 1)].pos, mab.frames[0].pos, param4);
+		quat.slerp(tmpQuat, mab.frames[(mab.frames.length - 1)].rot, mab.frames[0].rot, param4);
+	}
+	else
+	{
+		quat.lerp(tmpVec, mab.frames[param3].pos, mab.frames[(param3 + 1)].pos, param4);
+		quat.slerp(tmpQuat, mab.frames[param3].rot, mab.frames[(param3 + 1)].rot, param4);
+	}
+	matrix = prependTranslation(matrix, tmpVec);
+	tmpMat = fromModelVector(tmpMat, tmpQuat);
+	matrix = multiply(matrix, tmpMat);
+	mat4.transpose(matrix, matrix);
+	if (mab._parent != -1)
+	{
+		matrix = multiply(matrix, model_17_5.transforms[mab._parent]);
+	}
+	model_17_5.transforms[param1] = matrix;
+	return;
+}// end function
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec2 vTextureCoord;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vTextureCoord = aTextureCoord;
+    }
+</script>
+
+
+<script type="text/javascript">
+
+    var gl;
+    function initGL(canvas) {
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("你的浏览器不支持 WebGL, sorry :-(, 谷歌浏览器Chrome和火狐Firefox应该都可以.");
+        }
+    }
+
+
+    function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+            shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+
+        gl.shaderSource(shader, str);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(shader));
+            return null;
+        }
+
+        return shader;
+    }
+
+	var neheTexture;
+	 function initTexture() {
+        neheTexture = gl.createTexture();
+        neheTexture.image = new Image();
+        neheTexture.image.onload = function () {
+            handleLoadedTexture(neheTexture)
+        }
+
+        neheTexture.image.src = "model/17_5.png";
+    }
+
+    var shaderProgram;
+
+    function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs");
+        var vertexShader = getShader(gl, "shader-vs");
+
+        shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.useProgram(shaderProgram);
+
+        shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+		
+		shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+        gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+		
+		
+        shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler")
+    }
+
+
+    var mvMatrix = mat4.create();
+    var mvMatrixStack = [];
+    var pMatrix = mat4.create();
+
+    function mvPushMatrix() {
+        var copy = mat4.create();
+        mat4.copy(copy, mvMatrix);
+        mvMatrixStack.push(copy);
+    }
+
+    function mvPopMatrix() {
+        if (mvMatrixStack.length == 0) {
+            throw "Invalid popMatrix!";
+        }
+        mvMatrix = mvMatrixStack.pop();
+    }
+
+
+    function setMatrixUniforms() {
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+    }
+
+
+    function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+
+    var pyramidVertexPositionBuffer;
+    var pyramidVertexColorBuffer;
+    var cubeVertexPositionBuffer;
+    var cubeVertexColorBuffer;
+    var cubeVertexIndexBuffer;
+	
+	var TeemoVertexPositionBuffer;
+    var TeemoVertexColorBuffer;
+	var TeemoVertexTextureCoordBuffer;
+	var TeemoVertexIndexBuffer;
+
+    function initBuffers() {
+	
+		TeemoVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_vertices), gl.DYNAMIC_DRAW);
+        TeemoVertexPositionBuffer.itemSize = 3;
+        TeemoVertexPositionBuffer.numItems = teemo_vertices.length/3;
+		
+		TeemoVertexTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexTextureCoordBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_texture), gl.STATIC_DRAW);
+		TeemoVertexTextureCoordBuffer.itemSize = 2;
+		TeemoVertexTextureCoordBuffer.numItems = teemo_texture.length/2;
+		
+		TeemoVertexIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TeemoVertexIndexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(teemo_indeces), gl.STATIC_DRAW);
+		TeemoVertexIndexBuffer.itemSize = 1;
+		TeemoVertexIndexBuffer.numItems = teemo_indeces.length;
+    }
+	
+	function UpdateBuffers() {
+	
+        gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_vertices), gl.DYNAMIC_DRAW);
+        TeemoVertexPositionBuffer.itemSize = 3;
+        TeemoVertexPositionBuffer.numItems = teemo_vertices.length/3;
+		
+    }
+
+
+    var rPyramid = 0;
+
+    function drawScene() {
+		stats.begin();
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.01, 1000.0);
+        mat4.identity(mvMatrix);
+        mat4.translate(mvMatrix, mvMatrix, [0, -40.0, -160.0]);
+		
+		var offset_anim = new Date().getTime() % model_17_5.anim.duration;
+
+		var ms_p_frame = 1000 / model_17_5.anim.fps;
+		var offset_of_frame = Math.floor(offset_anim / ms_p_frame);
+		var _temp_8 = (offset_anim % model_17_5.anim.fps / ms_p_frame);
+		
+		var _temp_9 = model_17_5.anim.bones.length;
+		var _temp_4 = 0;
+		while (_temp_4 < _temp_9)
+		{
+			
+			var _temp_10 = model_17_5.bone_name_index[model_17_5.anim.bones[_temp_4].bone];
+			if (_temp_10 ==0) {
+				var dsa = 0;
+				dsa++;
+			}
+			calc(_temp_10, offset_of_frame, _temp_8, model_17_5, model_17_5.anim.bones[_temp_4]);
+			_temp_4++;
+		}
+
+		_temp_9 = Math.min(model_17_5.transforms.length, model_17_5._bones.length);
+		_temp_4 = 0;
+		while (_temp_4 < _temp_9)
+		{
+			 model_17_5.transforms[_temp_4] = multiply(model_17_5._bones[_temp_4].baseMatrix, model_17_5.transforms[_temp_4]);
+			_temp_4++;
+		}
+
+
+		var h = 0;
+		while (h < model_17_5._vertices.length)
+		{
+			var v = model_17_5._vertices[h];
+
+			var _temp_10 = h * 3;
+			
+			teemo_vertices[_temp_10 + 2] = 0;
+			teemo_vertices[(_temp_10 + 1)] = 0;
+			teemo_vertices[_temp_10] = 0;
+			var _temp_5 = 0;
+			while (_temp_5 < 4)
+			{
+				if (v.weights[_temp_5] > 0)
+				{
+					var _temp_13 = v.weights[_temp_5];
+					var _temp_12 = model_17_5.transforms[v.bones[_temp_5]];
+					var tmpVec = vec4.create();
+					vec4.transformMat4(tmpVec, v.position, _temp_12);
+					teemo_vertices[_temp_10] = teemo_vertices[_temp_10] + tmpVec[0] * _temp_13;
+					teemo_vertices[(_temp_10 + 1)] = teemo_vertices[(_temp_10 + 1)] + tmpVec[1] * _temp_13;
+					teemo_vertices[_temp_10 + 2] = teemo_vertices[_temp_10 + 2] + tmpVec[2] * _temp_13;
+
+					
+					teemo_vertices[_temp_10] = teemo_vertices[_temp_10];
+					teemo_vertices[_temp_10 + 1] = teemo_vertices[_temp_10 + 1];
+					teemo_vertices[_temp_10 + 2] = teemo_vertices[_temp_10 + 2];
+
+				}
+				_temp_5++;
+			}
+			h++;
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		mvPushMatrix();
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(rPyramid), [0, 1, 0]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, TeemoVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, TeemoVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		/*
+        gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, TeemoVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		*/
+		
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+		gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+		
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TeemoVertexIndexBuffer);
+        setMatrixUniforms();
+        //gl.drawArrays(gl.TRIANGLES, 0, TeemoVertexPositionBuffer.numItems);
+		gl.drawElements(gl.TRIANGLES, TeemoVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+        mvPopMatrix();
+
+
+        mat4.translate(mvMatrix, mvMatrix, [3.0, 2.0, 0.0]);
+
+		/*
+        mvPushMatrix();
+        mat4.rotate(mvMatrix, degToRad(rCube), [1, 1, 1]);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+		
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, cubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+		
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        setMatrixUniforms();
+        gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+        mvPopMatrix();
+		*/
+		
+		UpdateBuffers();
+		stats.end();
+    }
+
+
+    var lastTime = 0;
+
+    function animate() {
+        var timeNow = new Date().getTime();
+        if (lastTime != 0) {
+            var elapsed = timeNow - lastTime;
+
+            rPyramid += (90 * elapsed) / 1000.0;
+        }
+        lastTime = timeNow;
+    }
+
+
+    function tick() {
+        requestAnimFrame(tick);
+        drawScene();
+        animate();
+    }
+
+
+    function webGLStart() {
+        var canvas = document.getElementById("webgl-canvas");
+        initGL(canvas);
+        initShaders()
+        initBuffers();
+		initTexture();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+
+        tick();
+    }
+	
+	function handleLoadedTexture(texture) {
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+</script>
+
+
+
+
+</html>
+

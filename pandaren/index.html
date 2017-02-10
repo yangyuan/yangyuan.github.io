@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<head>
+	<title>Pandaren</title>
+<script type="text/javascript" src="three.min.js"></script>
+<style>
+body {
+	margin: 0px;
+	text-align:center;
+}
+#notice {
+	height:96px;
+	line-height:48px;
+	position:absolute;
+	top:120px;
+	left:50%;
+	margin-left:-128px;
+	width:256px;
+	background-color:#FFFFFF;
+}
+</style>
+</head>
+
+<body>
+
+<div id="container"></div>
+<div id="notice">Loading  正在载入，需要开启WebGL的浏览器如Chrome</div>
+<script>
+			window.onload = init;
+
+			var container;
+			var camera, scene, renderer;
+			var mesh, light;
+			var mouseX = 0, mouseY = 0;
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var model_wow;
+
+			var floor, dz = 0, dstep = -10, playback = false;
+
+			var clock = new THREE.Clock();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 10000 );
+				camera.position.set( 0, 4, 8 );
+				
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.FogExp2( 0xfff4e5, 0.0003 );
+
+				light = new THREE.DirectionalLight( 0xffffff, 1.5 );
+				light.position.set( 1, 0, 0 ).normalize();
+				scene.add( light );
+
+				var planeSimple = new THREE.PlaneGeometry( 200, 300 );
+				var planeTesselated = new THREE.PlaneGeometry( 100, 300, 25, 40 );
+				var matWire = new THREE.MeshBasicMaterial( { color: 0x110000, wireframe: true, wireframeLinewidth: 2 } );
+				var matSolid = new THREE.MeshBasicMaterial( { color: 0xffb23f } );
+
+				floor = new THREE.Mesh( planeTesselated, matWire );
+				floor.rotation.x = - Math.PI / 2;
+				floor.scale.set( 1, 1, 1 );
+				scene.add( floor );
+
+				renderer = new THREE.WebGLRenderer( { clearColor: 0xffffff, clearAlpha: 1, antialias: true } );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor( scene.fog.color, 1 );
+				renderer.sortObjects = false;
+
+				container.appendChild( renderer.domElement );
+
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				//document.addEventListener( 'click', startAnimation, false );
+
+				var loader = new THREE.JSONLoader();
+				loader.load( "model/pandaren.js", createScene );
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				
+				loop();
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function createScene( geometry, materials ) {
+
+
+				var x, y,
+					model_wow_, animation;
+
+				var material = new THREE.MeshFaceMaterial( materials );
+
+				var originalMaterial = materials[ 0 ];
+
+				originalMaterial.skinning = false;
+				originalMaterial.transparent = false;
+				originalMaterial.alphaTest = 0;
+
+				model_wow = new THREE.SkinnedMesh( geometry, material, false );
+
+				model_wow.position.x = 0;
+				model_wow.position.z = 0 ;
+
+				model_wow.position.y = 0;
+				model_wow.rotation.y = 0;
+
+				scene.add( model_wow);
+				
+				document.getElementById('notice').style.display="none";
+
+			}
+
+			
+			function onDocumentMouseMove( event ) {
+
+				mouseX = ( event.clientX - windowHalfX );
+				mouseY = ( event.clientY - windowHalfY );
+
+			}
+			
+			var xRotation = 0.0;
+            var yRotation = 0.0;
+
+			function loop() {
+
+				requestAnimationFrame( loop, renderer.domElement );
+				
+				
+				camera.lookAt( scene.position );
+				
+
+				xRotation += 0;
+				yRotation += 0.01;
+				if (typeof(model_wow) != 'undefined') model_wow.rotation.set(xRotation, yRotation, 0.0);
+				renderer.render( scene, camera );
+			}
+
+		</script>
+
+	</body>
+</html>
+

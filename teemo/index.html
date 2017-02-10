@@ -1,0 +1,344 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="model/17_5.js?2"></script>
+<script type="text/javascript" src="gl-matrix-min.js"></script>
+<script type="text/javascript" src="script.js"></script>
+<title>Teemo</title>
+
+</head>
+<body onload="webGLStart();" style="margin:0px; padding:0px;">
+    <canvas id="webgl-canvas" style="border: none; margin:12px auto;" width="1024" height="768"></canvas>
+</body>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec2 vTextureCoord;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vTextureCoord = aTextureCoord;
+    }
+</script>
+
+<script>
+
+// LOAD MODEL
+var teemo_indeces = new Array();
+var teemo_vertices = new Array();
+var teemo_texture = new Array();
+
+var i=0;
+while (i < model_17_5._vertices.length)
+{
+	var v = model_17_5._vertices[i];
+	v.bones = v.b;
+	v.weights = new  Array();
+	for (var k=0; k<v.w.length; k++) {
+		v.weights[k] = v.w[k]/1000.0;
+	}
+	v.position = vec4.create();
+	v.normal = vec4.create();
+	v.position[0] = v.s[0]/1000.0;
+	v.position[1] = v.s[1]/1000.0;
+	v.position[2] = v.s[2]/1000.0;
+	v.position[3] = v.s[3]/1000.0;
+	
+	v.normal[0] = v.s[4]/1000.0;
+	v.normal[1] = v.s[5]/1000.0;
+	v.normal[2] = v.s[6]/1000.0;
+	v.normal[3] = v.s[7]/1000.0;
+	
+	v.u = v.s[8]/1000.0;
+	v.v = v.s[9]/1000.0;
+	i++;
+}
+
+i=0;
+while (i < model_17_5._indices.length)
+{
+	teemo_indeces[i] = model_17_5._indices[i];
+	i++;
+}
+
+i=0;
+while (i < model_17_5._vertices.length)
+{
+	var v = model_17_5._vertices[i];
+	teemo_vertices[3*i] = v.position[0];
+	teemo_vertices[3*i+1] = v.position[1];
+	teemo_vertices[3*i+2] = v.position[2];
+	teemo_texture[2*i] = v.u;
+	teemo_texture[2*i+1] = -v.v;
+	i++;
+}
+</script>
+
+
+
+<script type="text/javascript">
+
+var gl;
+function getShader(gl, id) {
+	var shaderScript = document.getElementById(id);
+	if (!shaderScript) {
+		return null;
+	}
+
+	var str = "";
+	var k = shaderScript.firstChild;
+	while (k) {
+		if (k.nodeType == 3) {
+			str += k.textContent;
+		}
+		k = k.nextSibling;
+	}
+
+	var shader;
+	if (shaderScript.type == "x-shader/x-fragment") {
+		shader = gl.createShader(gl.FRAGMENT_SHADER);
+	} else if (shaderScript.type == "x-shader/x-vertex") {
+		shader = gl.createShader(gl.VERTEX_SHADER);
+	} else {
+		return null;
+	}
+
+	gl.shaderSource(shader, str);
+	gl.compileShader(shader);
+
+	if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		alert(gl.getShaderInfoLog(shader));
+		return null;
+	}
+
+	return shader;
+}
+
+var neheTexture;
+ function initTexture() {
+	neheTexture = gl.createTexture();
+	neheTexture.image = new Image();
+	neheTexture.image.onload = function () {
+		handleLoadedTexture(neheTexture)
+	}
+
+	neheTexture.image.src = "model/17_5.png";
+}
+
+var shaderProgram;
+
+function initShaders() {
+	var fragmentShader = getShader(gl, "shader-fs");
+	var vertexShader = getShader(gl, "shader-vs");
+
+	shaderProgram = gl.createProgram();
+	gl.attachShader(shaderProgram, vertexShader);
+	gl.attachShader(shaderProgram, fragmentShader);
+	gl.linkProgram(shaderProgram);
+
+	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+		alert("Could not initialise shaders");
+	}
+
+	gl.useProgram(shaderProgram);
+
+	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+	
+	shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+	gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+	
+	
+	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+	shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler")
+}
+
+
+var mvMatrix = mat4.create();
+var mvMatrixStack = [];
+var pMatrix = mat4.create();
+
+function mvPushMatrix() {
+	var copy = mat4.create();
+	mat4.copy(copy, mvMatrix);
+	mvMatrixStack.push(copy);
+}
+
+function mvPopMatrix() {
+	if (mvMatrixStack.length == 0) {
+		throw "Invalid popMatrix!";
+	}
+	mvMatrix = mvMatrixStack.pop();
+}
+
+
+function setMatrixUniforms() {
+	gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+	gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+}
+
+
+function degToRad(degrees) {
+	return degrees * Math.PI / 180;
+}
+
+
+
+var TeemoVertexPositionBuffer;
+var TeemoVertexTextureCoordBuffer;
+var TeemoVertexIndexBuffer;
+
+function InitBuffers() {
+
+	TeemoVertexPositionBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_vertices), gl.DYNAMIC_DRAW);
+	TeemoVertexPositionBuffer.itemSize = 3;
+	TeemoVertexPositionBuffer.numItems = teemo_vertices.length/3;
+	
+	TeemoVertexTextureCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexTextureCoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_texture), gl.STATIC_DRAW);
+	TeemoVertexTextureCoordBuffer.itemSize = 2;
+	TeemoVertexTextureCoordBuffer.numItems = teemo_texture.length/2;
+	
+	TeemoVertexIndexBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TeemoVertexIndexBuffer);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(teemo_indeces), gl.STATIC_DRAW);
+	TeemoVertexIndexBuffer.itemSize = 1;
+	TeemoVertexIndexBuffer.numItems = teemo_indeces.length;
+}
+
+
+
+var rPyramid = 0;
+var lastTime = 0;
+
+function UpdateBuffers() {
+
+
+	var timeNow = new Date().getTime();
+	if (lastTime != 0) {
+		var elapsed = timeNow - lastTime;
+
+		rPyramid += (90 * elapsed) / 1000.0;
+	}
+	lastTime = timeNow;
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(teemo_vertices), gl.DYNAMIC_DRAW);
+	TeemoVertexPositionBuffer.itemSize = 3;
+	TeemoVertexPositionBuffer.numItems = teemo_vertices.length/3;
+	
+}
+
+function webGLStart() {
+	var canvas = document.getElementById("webgl-canvas");
+	try {
+		gl = canvas.getContext("experimental-webgl");
+		gl.viewportWidth = canvas.width;
+		gl.viewportHeight = canvas.height;
+	} catch (e) {
+	}
+	if (!gl) {
+		alert("你的浏览器不支持 WebGL, sorry :-(, 谷歌浏览器Chrome和火狐Firefox应该都可以.");
+	}
+	initShaders()
+	InitBuffers();
+	initTexture();
+
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.enable(gl.DEPTH_TEST);
+
+	tick();
+}
+
+// call render and update stat info
+function tick() {
+	if( typeof(tick.fps) == 'undefined' ) {
+		tick.fps = 0;
+		tick.time_last = Date.now();
+		tick.frames = 0;
+	}
+	
+	var time = Date.now();
+	if ( time > tick.time_last + 1000 ) {
+		tick.fps = Math.round( ( tick.frames * 1000 ) / ( time - tick.time_last ) );
+		tick.frames = 0;
+		tick.time_last = time;
+	}
+	tick.frames++;
+	window.document.title = tick.fps;
+	render();
+	
+	window.setTimeout(tick, 1);
+}
+
+// use webgl functions to render models
+function render() {
+	UpdateBuffers();
+	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+	mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.01, 1000.0);
+	mat4.identity(mvMatrix);
+	mat4.translate(mvMatrix, mvMatrix, [0, -40.0, -160.0]);
+	
+	mvPushMatrix();
+	mat4.rotate(mvMatrix, mvMatrix, degToRad(rPyramid), [0, 1, 0]);
+	gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexPositionBuffer);
+	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, TeemoVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.bindBuffer(gl.ARRAY_BUFFER, TeemoVertexTextureCoordBuffer);
+	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, TeemoVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	
+	
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+	gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+	
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, TeemoVertexIndexBuffer);
+	setMatrixUniforms();
+	
+	gl.drawElements(gl.TRIANGLES, TeemoVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+	mvPopMatrix();
+
+
+	mat4.translate(mvMatrix, mvMatrix, [3.0, 2.0, 0.0]);
+
+	
+}
+
+function handleLoadedTexture(texture) {
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+</script>
+
+
+
+
+</html>
+

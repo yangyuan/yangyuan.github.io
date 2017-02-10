@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- <script type="text/javascript" src="three.min.js"></script>  -->
+<script type="text/javascript" src="three.js"></script>
+<script type="text/javascript" src="script.js"></script>
+<script type="text/javascript" src="model/alliance.js"></script>
+<title>War3</title>
+
+</head>
+<body style="margin:0px; padding:0px; background-color:#333333;">
+    <div id="webgl-canvas" style="margin:0px auto;  width:1024px; padding:0px;"></div>
+</body>
+
+<script type="text/javascript">
+
+var WIDTH = 1024, HEIGHT = 768;
+var VIEW_ANGLE = 45, ASPECT = WIDTH / HEIGHT, NEAR = 0.1, FAR = 100000;
+var canvas = document.getElementById('webgl-canvas');
+var renderer = new THREE.WebGLRenderer();
+var camera = new THREE.PerspectiveCamera(  VIEW_ANGLE, ASPECT, NEAR, FAR  );
+var scene = new THREE.Scene();
+renderer.setSize(WIDTH, HEIGHT);
+canvas.appendChild(renderer.domElement);
+
+
+camera.position.x = 1140.287994;
+camera.position.y = -200.664001;
+camera.position.z = 450;
+camera.up = new THREE.Vector3(0,0,1);
+camera.lookAt(new THREE.Vector3(23, 380, 230))
+	
+	
+var wars = new Array();
+var war_textures = new Array();
+var war_materials = new Array();
+var war_bones = new Array();
+var war_lights = new Array();
+var war_animations = new Array();
+
+function load_texture(Texture) {
+	offset = war_textures.length;
+	
+	var war_texture = THREE.ImageUtils.loadTexture('model/' + Texture.Image);
+	war_texture.wrapS = war_texture.wrapT = THREE.RepeatWrapping;
+	
+	war_textures[offset] = war_texture;
+}
+
+function load_material(Material) {
+	offset = war_materials.length;
+	
+	var war_material = new THREE.MeshLambertMaterial({
+        map: war_textures[Material.Layers[0].TextureID]
+      });
+	  
+	//war_material.transparent = true;
+	
+	if (typeof(Material.Layers[0].Alpha) != 'undefined') {
+		war_material.transparent = true;
+		war_material.opacity = Material.Layers[0].Alpha;
+		war_material.depthWrite= false;
+		war_material.depthTest= false
+	}
+	
+	if (Material.Layers[0].TwoSided == true) {
+		war_material.side = THREE.DoubleSide;
+	}
+	
+	if (Material.Layers[0].Unshaded == true) {
+		//war_material.shading = THREE.NoShading ;
+	}
+	
+	if (Material.Layers[0].FilterMode == 'Additive') {
+		war_material.blending = THREE.AdditiveBlending;;
+		war_material.transparent = true;
+		war_material.depthWrite= false;
+		war_material.depthTest= false
+	}
+	
+	if (Material.Layers[0].FilterMode == 'Blend') {
+		war_material.blending = THREE.AdditiveBlending;
+		war_material.transparent = true;
+		war_material.depthWrite= false;
+		war_material.depthTest= false
+	}
+	
+	if (Material.Layers[0].FilterMode == 'Transparent') {
+		war_material.transparent = true;
+	}
+	
+	
+	
+	war_materials[offset] = war_material;
+	
+}
+
+function load_geos(Geosets) {
+	offset = wars.length;
+	
+	var geom = new THREE.Geometry(); 
+	i=0;
+	while (i < Geosets.Vertices.length)
+	{
+		var v = Geosets.Vertices[i];
+		geom.vertices.push(new THREE.Vector3(v[0],v[1],v[2]));
+		var n = Geosets.Normals[i];
+		geom.normals.push(new THREE.Vector3(n[0],n[1],n[2]));
+		i++;
+	}
+	
+	i=0;
+	geom.faceVertexUvs[0] = new Array();
+	while (i < Geosets.Triangles.length)
+	{
+		geom.faces.push( new THREE.Face3( Geosets.Triangles[i+0], Geosets.Triangles[i+1], Geosets.Triangles[i+2] ) );
+		geom.faceVertexUvs[0].push(
+		[
+			new THREE.Vector2( Geosets.TVertices[Geosets.Triangles[i+0]][0], -Geosets.TVertices[Geosets.Triangles[i+0]][1]), 
+			new THREE.Vector2( Geosets.TVertices[Geosets.Triangles[i+1]][0], -Geosets.TVertices[Geosets.Triangles[i+1]][1]), 
+			new THREE.Vector2( Geosets.TVertices[Geosets.Triangles[i+2]][0], -Geosets.TVertices[Geosets.Triangles[i+2]][1]),
+		]);
+		i+=3;
+	}
+	
+	geom.computeFaceNormals();
+	geom.computeVertexNormals();
+	
+	wars[offset] = new THREE.Mesh(
+	   geom,
+	   war_materials[Geosets.MaterialID]);
+	wars[offset].overdraw = true;
+
+}
+
+function load_bone(Bone) {
+	offset = war_bones.length;
+	
+	
+	var war_bone = new THREE.Bone();
+	war_bone.name = Bone.Name;
+	war_bone.id = Bone.ObjectId;
+	if (typeof (Parent) != 'undefined') {
+	    war_bone.parent = Bone.Parent;
+	} else {
+	    war_bone.parent = -1;
+	}
+
+	var position = model_war.PivotPoints[Bone.ObjectId];
+
+	war_bone.position.x = position[0];
+	war_bone.position.y = position[1];
+	war_bone.position.z = position[2];
+
+	
+	war_bones[offset] = war_bone;
+}
+
+function load_light(Light) {
+    offset = war_lights.length;
+    
+    var color = new THREE.Color();
+    color.r = Light.Color[0];
+    color.g = Light.Color[1];
+    color.b = Light.Color[2];
+
+    war_light = new THREE.PointLight(color.getHex(), 0.6);
+
+
+    var position = model_war.PivotPoints[Light.ObjectId];
+
+    war_light.position.x = position[0];
+    war_light.position.y = position[1];
+    war_light.position.z = position[2];
+    
+    war_lights[offset] = war_light;
+}
+
+function load_animation(Sequences) {
+    offset = war_animations.length;
+
+    var war_animation = {};
+    war_animation.name = Sequences.Name;
+    war_animation.fps = 30;
+    war_animation.length = (Sequences.Interval[1] - Sequences.Interval[0]) / 1000;
+    war_animation.JIT = 0;
+    war_animation.hierarchy = new Array();
+
+
+    //for (var i = 0; i < war_bones.length; i++) {
+        var hierarchy = {};
+        hierarchy.parent = war_bones[0].parent;
+        hierarchy.keys = new Array();
+        //for (var j=0; i< war_bones[i].
+        //;
+    //}
+
+    //var position = model_war.PivotPoints[Light.ObjectId];
+
+
+    //war_animations[offset] = war_animation;
+}
+
+var g=0;
+while (g < model_war.Textures.length) { load_texture(model_war.Textures[g]); g++}
+var g=0;
+while (g < model_war.Materials.length) { load_material(model_war.Materials[g]); g++}
+var g=0;
+while (g < model_war.Geosets.length) { load_geos(model_war.Geosets[g]); g++}
+var g=0;
+while (g < model_war.Bones.length) { load_bone(model_war.Bones[g]); g++}
+var g = 0;
+while (g < model_war.Lights.length) { load_light(model_war.Lights[g]); g++ }
+var g = 0;
+while (g < model_war.Sequences.length) { load_animation(model_war.Sequences[g]); g++ }
+
+var g =0;
+while (g < wars.length) {	
+	scene.add(wars[g]);
+    g++;
+}
+
+var g = 0;
+while (g < war_lights.length) {
+    scene.add(war_lights[g]);
+    g++;
+}
+var BaseLight = new THREE.PointLight( 0xFFFFFF,0.5);
+BaseLight.position.x = 1140.287994;
+BaseLight.position.y = -200.664001;
+BaseLight.position.z = 450;
+scene.add(BaseLight);
+
+// and the camera
+scene.add(camera);
+
+
+renderer.render(scene, camera);
+
+
+var angularSpeed = 0.2; 
+var lastTime = 0;
+
+var baserot_x = camera.rotation.x;
+var baserot_y = camera.rotation.y;
+function animate(){
+	// update
+	var time = (new Date()).getTime();
+	var timeDiff = time - lastTime;
+	var angleChange = angularSpeed * timeDiff * 2 * Math.PI / 1000;
+    //sphere.rotation.y += angleChange;
+
+	time = time / 1000 % 16 - 8;
+	camera.rotation.x = baserot_x + Math.sin(time * Math.PI / 8) * 0.01
+	camera.rotation.y = baserot_y + Math.sin(time * Math.PI / 8) * 0.001
+
+	lastTime = time;
+	renderer.render(scene, camera);
+	requestAnimationFrame(function(){
+		animate();
+	});
+}
+animate();
+</script>
+</html>

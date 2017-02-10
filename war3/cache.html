@@ -1,0 +1,407 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="gl-matrix-min.js"></script>
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script type="text/javascript" src="stats.min.js"></script>
+<script type="text/javascript" src="script.js"></script>
+<script type="text/javascript" src="model/ancientofwar.js?2"></script>
+<title>War3</title>
+
+</head>
+<body onload="webGLStart();" style="margin:0px; padding:0px;">
+    <canvas id="webgl-canvas" style="border: none;" width="1024" height="768"></canvas>
+</body>
+
+<script>
+
+
+
+// FPS FRAME
+var stats = new Stats();
+stats.setMode(0);
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0';
+stats.domElement.style.top = '0';
+document.body.appendChild( stats.domElement );
+
+
+
+
+// LOAD MODEL
+var war_indeces = new Array();
+var war_vertices = new Array();
+var war_colors = new Array();
+var war_texture = new Array();
+
+
+
+function load_geos(Geosets) {
+	offset_i = war_indeces.length;
+	offset_v = war_vertices.length/3;
+	i=0;
+	while (i < Geosets.Faces.length)
+	{
+		var tmp = i+offset_i;
+		war_indeces[tmp] = Geosets.Faces[i]+offset_v;
+		i++;
+	}
+
+	
+	i=0;
+	while (i < Geosets.Vertices.length)
+	{
+		var tmp = i+offset_v;
+		var v = Geosets.Vertices[i];
+		war_vertices[3*tmp] = v[0]/5;
+		war_vertices[3*tmp+1] = v[2]/5+32;
+		war_vertices[3*tmp+2] = v[1]/5;
+		var n = Geosets.Normals[i];
+		war_colors[3*tmp] = n[0];
+		war_colors[3*tmp+1] = n[1];
+		war_colors[3*tmp+2] = n[2];
+		var t = Geosets.TVertices[i];
+		war_texture[2*tmp] = t[0];
+		war_texture[2*tmp+1] = -t[1];
+		i++;
+	}
+}
+
+
+//load_geos(model_war.Geosets[1]);
+//load_geos(model_war.Geosets[4]);
+
+var g =0;
+while (g < model_war.Geosets.length) { load_geos(model_war.Geosets[g]); g++}
+
+/*
+while (g < model_war.Geosets.length) {
+	var Geosets = model_war.Geosets[g];
+	offset =war_indeces.length;
+	i=0;
+	while (i < Geosets.Faces.length)
+	{
+		var tmp = i+offset;
+		war_indeces[tmp] = Geosets.Faces[i];
+		i++;
+	}
+
+	offset=war_vertices.length/3;
+	i=0;
+	while (i < Geosets.Vertices.length)
+	{
+		var tmp = i+offset;
+		var v = Geosets.Vertices[i];
+		war_vertices[3*tmp] = v[0]/5;
+		war_vertices[3*tmp+1] = v[1]/5;
+		war_vertices[3*tmp+2] = v[2]/5;
+		var n = Geosets.Normals[i];
+		war_colors[3*tmp] = n[0];
+		war_colors[3*tmp+1] = n[1];
+		war_colors[3*tmp+2] = n[2];
+		var t = Geosets.TVertices[i];
+		war_texture[2*tmp] = t[0];
+		war_texture[2*tmp+1] = -t[1];
+		i++;
+	}
+	g++;
+}
+*/
+
+</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSampler;
+    void main(void) {
+        gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+    varying vec2 vTextureCoord;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vTextureCoord = aTextureCoord;
+    }
+</script>
+
+
+<script type="text/javascript">
+
+    var gl;
+    function initGL(canvas) {
+        try {
+            gl = canvas.getContext("experimental-webgl");
+            gl.viewportWidth = canvas.width;
+            gl.viewportHeight = canvas.height;
+        } catch (e) {
+        }
+        if (!gl) {
+            alert("你的浏览器不支持 WebGL, sorry :-(, 谷歌浏览器Chrome和火狐Firefox应该都可以.");
+        }
+    }
+
+
+    function getShader(gl, id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+            shader = gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+
+        gl.shaderSource(shader, str);
+        gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(shader));
+            return null;
+        }
+
+        return shader;
+    }
+
+	var neheTexture;
+	 function initTexture() {
+        neheTexture = gl.createTexture();
+        neheTexture.image = new Image();
+        neheTexture.image.onload = function () {
+            handleLoadedTexture(neheTexture)
+        }
+
+        neheTexture.image.src = "model/ancientofwar.png";
+    }
+
+    var shaderProgram;
+
+    function initShaders() {
+        var fragmentShader = getShader(gl, "shader-fs");
+        var vertexShader = getShader(gl, "shader-vs");
+
+        shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.useProgram(shaderProgram);
+
+        shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+        gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+		
+		shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+        gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+		
+		
+        shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+        shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+		shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler")
+    }
+
+
+    var mvMatrix = mat4.create();
+    var mvMatrixStack = [];
+    var pMatrix = mat4.create();
+
+    function mvPushMatrix() {
+        var copy = mat4.create();
+        mat4.copy(copy, mvMatrix);
+        mvMatrixStack.push(copy);
+    }
+
+    function mvPopMatrix() {
+        if (mvMatrixStack.length == 0) {
+            throw "Invalid popMatrix!";
+        }
+        mvMatrix = mvMatrixStack.pop();
+    }
+
+
+    function setMatrixUniforms() {
+        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+    }
+
+
+    function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+
+    var pyramidVertexPositionBuffer;
+    var pyramidVertexColorBuffer;
+    var cubeVertexPositionBuffer;
+    var cubeVertexColorBuffer;
+    var cubeVertexIndexBuffer;
+	
+	var WarVertexPositionBuffer;
+    var WarVertexColorBuffer;
+	var WarVertexTextureCoordBuffer;
+	var WarVertexIndexBuffer;
+
+    function initBuffers() {
+	
+		WarVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(war_vertices), gl.DYNAMIC_DRAW);
+        WarVertexPositionBuffer.itemSize = 3;
+        WarVertexPositionBuffer.numItems = war_vertices.length/3;
+		
+		WarVertexTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexTextureCoordBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(war_texture), gl.STATIC_DRAW);
+		WarVertexTextureCoordBuffer.itemSize = 2;
+		WarVertexTextureCoordBuffer.numItems = war_texture.length/2;
+		
+		WarVertexIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, WarVertexIndexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(war_indeces), gl.STATIC_DRAW);
+		WarVertexIndexBuffer.itemSize = 1;
+		WarVertexIndexBuffer.numItems = war_indeces.length;
+    }
+	
+	function UpdateBuffers() {
+	
+        gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(war_vertices), gl.DYNAMIC_DRAW);
+        WarVertexPositionBuffer.itemSize = 3;
+        WarVertexPositionBuffer.numItems = war_vertices.length/3;
+		
+    }
+
+
+    var rPyramid = 0;
+
+    function drawScene() {
+		stats.begin();
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, 0.01, 1000.0);
+        mat4.identity(mvMatrix);
+        mat4.translate(mvMatrix, mvMatrix, [0, -40.0, -160.0]);
+		
+		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		mvPushMatrix();
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(rPyramid), [0, 1, 0]);
+        gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, WarVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, WarVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		
+		/*
+        gl.bindBuffer(gl.ARRAY_BUFFER, WarVertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, WarVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		*/
+		
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, neheTexture);
+		gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+		
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, WarVertexIndexBuffer);
+        setMatrixUniforms();
+        //gl.drawArrays(gl.TRIANGLES, 0, WarVertexPositionBuffer.numItems);
+		gl.drawElements(gl.TRIANGLES, WarVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+        mvPopMatrix();
+
+
+
+		UpdateBuffers();
+		stats.end();
+    }
+
+
+    var lastTime = 0;
+
+    function animate() {
+        var timeNow = new Date().getTime();
+        if (lastTime != 0) {
+            var elapsed = timeNow - lastTime;
+
+            rPyramid += (90 * elapsed) / 1000.0;
+        }
+        lastTime = timeNow;
+    }
+
+
+    function tick() {
+        requestAnimFrame(tick);
+        drawScene();
+        animate();
+    }
+
+
+    function webGLStart() {
+        var canvas = document.getElementById("webgl-canvas");
+        initGL(canvas);
+        initShaders()
+        initBuffers();
+		initTexture();
+
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.enable(gl.DEPTH_TEST);
+
+        tick();
+    }
+	
+	function handleLoadedTexture(texture) {
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+</script>
+
+
+
+
+</html>
+
