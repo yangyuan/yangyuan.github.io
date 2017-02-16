@@ -9,7 +9,7 @@
 
 <div id="stage" ng-controller="StageCtrl">
     <div id="desk">
-        <span style="font-size: 96px; font-family: 'Segoe UI Symbol, sans-serif">
+        <span style="font-size: 96px; font-family: 'Segoe UI Symbol', sans-serif">
             <span ng-repeat="sharedCard in sharedCards">
                 <span id="card_{{sharedCard.id}}" class="in_win_hand_{{sharedCard.inhand}}">{{ sharedCard.unicode }}</span>
             </span>
@@ -17,7 +17,7 @@
     </div>
 
     <div ng-repeat="player in players">
-        <span style="font-size: 96px; font-family: 'Segoe UI Symbol, sans-serif"">
+        <span style="font-size: 96px; font-family: 'Segoe UI Symbol', sans-serif">
 
             <span ng-repeat="handCard in player.handCards">
                 <span id="card_{{handCard.id}}" class="in_win_hand_{{handCard.inhand}}">{{ handCard.unicode }}</span>
