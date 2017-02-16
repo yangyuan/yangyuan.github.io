@@ -1,0 +1,99 @@
+<html ng-app="PokerApp">
+<head>
+    <title>Texas hold 'em prototype</title>
+    <script type="text/javascript" src="prototype.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+
+<div id="stage" ng-controller="StageCtrl">
+    <div id="desk">
+        <span style="font-size: 96px;">
+            <span ng-repeat="sharedCard in sharedCards">
+                <span id="card_{{sharedCard.id}}" class="in_win_hand_{{sharedCard.inhand}}">{{ sharedCard.unicode }}</span>
+            </span>
+        </span>
+    </div>
+
+    <div ng-repeat="player in players">
+        <span style="font-size: 96px;">
+
+            <span ng-repeat="handCard in player.handCards">
+                <span id="card_{{handCard.id}}" class="in_win_hand_{{handCard.inhand}}">{{ handCard.unicode }}</span>
+            </span>
+        </span>
+        &nbsp&nbsp
+        <span style="font-size: 72px;" class="player_win_{{player.winner}}">{{ player.hand }}</span>
+    </div>
+</div>
+
+<script>
+angular.module('PokerApp', [])
+  .controller('StageCtrl',StageCtrl);
+
+function getCardsString(cards) {
+    let cardsString = "";
+    for (let card of cards) {
+        cardsString += card.unicode;
+    }
+    return cardsString;
+}
+
+function StageCtrl ($scope) {
+    let engine = new GameEngine();
+    engine.shuffleDeck();
+    let players = [new Player(),new Player(),new Player(),new Player(),new Player()];
+    while (engine.step != GameStep.END) {
+        engine.moveToNextStep(players);
+    }
+
+
+    $scope.sharedCards = engine.sharedCards;
+
+    $scope.players = []
+    for(let player of players) {
+        let cards = [];
+        cards = cards.concat(player.handcards, engine.sharedCards)
+        let bestCards = GameEngine.selectBestCards(cards);
+        player.hand = GameEngine.getHandFromCards(bestCards);
+        $scope.players.push({handCards:player.handcards, name:player.name, id:player.id, hand:HandUtils.getHandName(player.hand), winner:false});
+    }
+
+    let biggestRanking = null;
+    let winner = null;
+    for(let player of players) {
+        if (biggestRanking == null) {
+            biggestRanking = player.hand;
+            winner = player;
+        } else if (player.hand.weight > biggestRanking.weight) {
+            biggestRanking = player.hand;
+            winner = player;
+        }
+    }
+
+    for(let player of $scope.players) {
+        if (player.id == winner.id) {
+            player.winner = true;
+        }
+    }
+
+
+    let wincards = [];
+    wincards = wincards.concat(winner.handcards, $scope.sharedCards);
+    for(let wincard of wincards) {
+        wincard.inhand = false;
+    }
+
+    wincards = HandUtils.findCardsByHand(winner.hand, wincards)
+    console.log(winner.hand)
+    for(let wincard of wincards) {
+        console.log(wincard)
+        wincard.inhand = true;
+    }
+}
+
+</script>
+
+</body>
+</html>
