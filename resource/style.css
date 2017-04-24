@@ -2,8 +2,6 @@ body > .container {
   padding: 20px 15px 0;
 }
 
-#posts h1 {
-	font-size:18px;
-	line-height:24px;
-	font-weight: bold;
+article {
+    font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial, "Microsoft Yahei", "Segoe UI Symbol", sans-serif;
 }
