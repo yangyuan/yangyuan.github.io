@@ -3,6 +3,8 @@ layout: post
 title: 记一次配置高并发 UBUNTU、NGINX、PHP、MYSQL
 ---
 
+涉及内容：Linux 文件描述符、网络连接数、Nginx worker 配置、PHP fpm 配置、MySQL 部分细节配置。
+
 ## 操作系统
 
 ### 文件描述符
@@ -18,6 +20,7 @@ title: 记一次配置高并发 UBUNTU、NGINX、PHP、MYSQL
 		
 (理论上前两部即可，实际无效，所以加了第三部步，无效原因未知）
 我不了解内核的实现，我猜测是会有跟定长数组维护这个描述符列表。对长度做限制，可能降低了某些操作的时间。
+
 ### 网络连接数
 说实话，对这个参数我并不了解，先放在这里。
 	echo 'net.core.somaxconn = 65536' >> /etc/sysctl.conf
@@ -40,8 +43,10 @@ title: 记一次配置高并发 UBUNTU、NGINX、PHP、MYSQL
 worker_processes，理论上没必要超过操作系统所识别的 CPU 核数。NGINX 超高并发的重要基础就是使用了事件模型，而不是传统的进程线程池，一般来说，就算是 1 也不应该是瓶颈。
 worker_rlimit_nofile 每个 processes 打开的文件描述符限制。。。
 有人提议把 nginx pid 放进内存，我觉得他吃饱了撑着。
-`use epoll` 也不需要加，符合条件，会自动选择 epoll。
-`multi_accept on` 就属于看心情了。。。系统撑得住就行，可以有效提高高并发下，连接的响应速度。
+
+ - `use epoll` 也不需要加，符合条件，会自动选择 epoll。
+ - `multi_accept on` 就属于看心情了。。。系统撑得住就行，可以有效提高高并发下，连接的响应速度。
+ 
 配个网站我就不罗嗦了。
 
 	server {
