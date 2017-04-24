@@ -4,6 +4,7 @@
     <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
     {% include meta.html %}
     <link rel="stylesheet" type="text/css" href="resource/style.css" />
+    <link rel="stylesheet" type="text/css" href="resource/markdown.css" />
     <link rel="alternate" type="application/rss+xml" title="{{ site.name }} - {{ site.description }}" href="feed.xml" />
     <!-- bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
@@ -39,14 +40,13 @@
   {{ content }}
 </div>
 
-<div class="wrapper-footer">
-  <div class="container">
-    <footer class="footer">
-      {% include svg-icons.html %}
-    </footer>
-  </div>
-</div>
 
-{% include analytics.html %}
+
+<footer class="footer">
+  <div class="container">
+    <p>&copy; <a href="https://github.com/yangyuan" target="_blank">https://github.com/yangyuan<a></p>
+  </div>
+</footer>
+
   </body>
 </html>

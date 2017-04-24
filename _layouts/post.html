@@ -5,12 +5,12 @@ layout: default
 <article class="post">
   <h2>{{ page.title }}</h2>
 
-  <div class="entry">
-    {{ content }}
-  </div>
-
   <div class="date">
     Written on {{ page.date | date: "%B %e, %Y" }}
+  </div>
+
+  <div class="markdown-body">
+    {{ content }}
   </div>
 
   {% include disqus.html %}

@@ -2,6 +2,17 @@ body > .container {
   padding: 20px 15px 0;
 }
 
+.footer {
+  padding-bottom: 1.5rem;
+  padding-top: 1rem;
+  border-top: .05rem solid #e5e5e5;
+  margin-top: 2rem;
+}
+
 article {
     font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial, "Microsoft Yahei", "Segoe UI Symbol", sans-serif;
+}
+
+.date {
+    padding: 0px 0px 15px 0px;
 }
