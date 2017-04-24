@@ -13,8 +13,10 @@ C语言里字符串的实现是通过char数组实现。'\0' 是它结束的标�
 字符串里不会包含'\0'，并且字符串长度跟数组长度无关。很多情况，字符串并非存在数组里，只是可以看成是在数组里而已。
 
 PHP里则是完全不一样的情况。
+```
 	echo strlen('xxx')."\r\n";
 	echo strlen('xxx'."\0")."\r\n"; // 双引号哟
+```
 这样的代码输出分别是3、4。也就是在PHP中，可以认为字符串就是一个char数组。
 这个特性也意味着所有字符串函数，都可以用来处理二进制块，而不需要担心里面存在"\0"（注意这里是双引号）。
 
@@ -33,10 +35,12 @@ M由被加密的数据生成，由于公式M[sup]e[/sup] ≡ C (mod N)，那么M
 因此，通常把被加密数据切块，再填充，然后生成M。填充方式有几种，最常见通用的是PKCS1_PADDING，下面就以PKCS1_PADDING举例。
 块的长度为密钥长度-11（数学决定的）。
 M的最终二进制字符串形式为：
+```
 	// $type 为填充方式，通常默认为2，代表填充0，如果为1代表填充1。
 	// $padding 为填充数据，具体取决于加密参数，通常为一串随机字符串，最终以"\0"结尾。
 	$m = "\0".$type.$padding."xxxxxxxxxx";
 	// 注意，最终$m的长度必然等于密钥长度
+```
 转化完了之后，M就可以作为一个大整数，去进行模幂运算了。
 ### 模幂运算
 PHP5里自带的BC函数bcpowmod有大小限制，就算调用其他BC函数组合，依然是有大小限制的。
@@ -52,29 +56,31 @@ PHP5里自带的BC函数bcpowmod有大小限制，就算调用其他BC函数组�
 ### 关于PADDING
 之前说过对于M，是要采用切片和填充的方式，生成合适的数据进行模幂运算。
 对于OPENSSL来说，常见的填错方式，如OPENSSL_PKCS1_PADDING、OPENSSL_NO_PADDING会生成不同的数据。因此一定要保证加密和解密过程中使用同一种PADDING。
-	function rsa_encrypt($message, $e, $n) {
-		$exponent = hex2bin($e);
-		$modulus = hex2bin($n);
-		$pkey = rsa_pkey($exponent, $modulus);
-		openssl_public_encrypt($message, $result, $pkey, OPENSSL_PKCS1_PADDING);
-		return $result;
-	}
+```php
+function rsa_encrypt($message, $e, $n) {
+	$exponent = hex2bin($e);
+	$modulus = hex2bin($n);
+	$pkey = rsa_pkey($exponent, $modulus);
+	openssl_public_encrypt($message, $result, $pkey, OPENSSL_PKCS1_PADDING);
+	return $result;
+}
+
+function rsa_encrypt($message, $e, $n) {
+	$exponent = hex2bin($e);
+	$modulus = hex2bin($n);
+	$pkey = rsa_pkey($exponent, $modulus);
 	
-	function rsa_encrypt($message, $e, $n) {
-		$exponent = hex2bin($e);
-		$modulus = hex2bin($n);
-		$pkey = rsa_pkey($exponent, $modulus);
-		
-		$length = strlen($modulus);
-		$length_padding = $length - strlen($message) - 2;
-		$padding = "\x00";
-	    while (strlen($padding) < $length_padding) {
-	        $padding = "\xFF".$padding;
-	    }
-		$message = "\0\2".$padding.$message;
-		
-		openssl_public_encrypt($message, $result, $pkey, OPENSSL_NO_PADDING);
-		return $result;
+	$length = strlen($modulus);
+	$length_padding = $length - strlen($message) - 2;
+	$padding = "\x00";
+	while (strlen($padding) < $length_padding) {
+		$padding = "\xFF".$padding;
 	}
+	$message = "\0\2".$padding.$message;
+	
+	openssl_public_encrypt($message, $result, $pkey, OPENSSL_NO_PADDING);
+	return $result;
+}
+```
 在数据不超出范围的情况下，两种函数的效果应该均有效。
 当然这加密后的数据是二进制的，可以使用bin2hex转化并且显示。

@@ -27,7 +27,7 @@ Unity3D 是个不错的商业化引擎，早期在做iOS游戏时候接触到。
 ----
 其实主要是 MonoCecil 的使用
 通过文件名、类名、方法名，取出方法的定义
-```csharp
+```cs
 static MethodDefinition fetch_method(string file, string type, string method)
 {
 	// find hook method
@@ -63,7 +63,7 @@ static MethodDefinition fetch_method(string file, string type, string method)
 }
 ```
 通过文件名和方法定义实现注入
-```csharp
+```cs
 static AssemblyDefinition inject_method(string file, MethodDefinition method, MethodDefinition method_tobe_inject)
 {
 	try

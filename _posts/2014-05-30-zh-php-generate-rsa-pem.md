@@ -117,18 +117,20 @@ PEM 格式RSA公钥细节
 ----
 下面是根据上面的分析写出来的一个生成代码。
 没有严谨的包装，纯粹是拼接，所以仅供参考。（理论上这段代码可以写成很漂亮的递归打包。）
-	function rsa_pkey($exponent, $modulus) {
-		$modulus = pack('Ca*a*', 0x02, asn1_length(strlen($modulus)), $modulus);
-	    $exponent = pack('Ca*a*', 0x02, asn1_length(strlen($exponent)), $exponent);
-		$oid = pack('H*', '300d06092a864886f70d0101010500'); // MA0GCSqGSIb3DQEBAQUA，这段我也特么不知道是啥
-		
-		$pkey =	$modulus.$exponent;
-		$pkey = pack('Ca*a*', 0x30, asn1_length(strlen($pkey)), $pkey);
-		$pkey = pack('Ca*', 0x00, $pkey);
-		$pkey = pack('Ca*a*', 0x03, asn1_length(strlen($pkey)), $pkey);
-		$pkey = $oid.$pkey;
-		$pkey = pack('Ca*a*', 0x30, asn1_length(strlen($pkey)), $pkey);
-		$pkey = '-----BEGIN PUBLIC KEY-----'."\r\n".chunk_split(base64_encode($pkey)).'-----END PUBLIC KEY-----';
-		return $pkey;
-	}
+```php
+function rsa_pkey($exponent, $modulus) {
+	$modulus = pack('Ca*a*', 0x02, asn1_length(strlen($modulus)), $modulus);
+	$exponent = pack('Ca*a*', 0x02, asn1_length(strlen($exponent)), $exponent);
+	$oid = pack('H*', '300d06092a864886f70d0101010500'); // MA0GCSqGSIb3DQEBAQUA，这段我也特么不知道是啥
+	
+	$pkey =	$modulus.$exponent;
+	$pkey = pack('Ca*a*', 0x30, asn1_length(strlen($pkey)), $pkey);
+	$pkey = pack('Ca*', 0x00, $pkey);
+	$pkey = pack('Ca*a*', 0x03, asn1_length(strlen($pkey)), $pkey);
+	$pkey = $oid.$pkey;
+	$pkey = pack('Ca*a*', 0x30, asn1_length(strlen($pkey)), $pkey);
+	$pkey = '-----BEGIN PUBLIC KEY-----'."\r\n".chunk_split(base64_encode($pkey)).'-----END PUBLIC KEY-----';
+	return $pkey;
+}
+```
 其中$exponent和$modulus分别是二进制状态下的E和N，可以使用hex2bin函数转化。
