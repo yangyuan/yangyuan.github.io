@@ -3,9 +3,9 @@
   <head>
     <title>{% if page.title %}{{ page.title }} – {% endif %}{{ site.name }} – {{ site.description }}</title>
     {% include meta.html %}
-    <link rel="stylesheet" type="text/css" href="resource/style.css" />
-    <link rel="stylesheet" type="text/css" href="resource/markdown.css" />
-    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} - {{ site.description }}" href="feed.xml" />
+    <link rel="stylesheet" type="text/css" href="/resource/style.css" />
+    <link rel="stylesheet" type="text/css" href="/resource/markdown.css" />
+    <link rel="alternate" type="application/rss+xml" title="{{ site.name }} - {{ site.description }}" href="/feed.xml" />
     <!-- bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
@@ -14,7 +14,8 @@
   </head>
 
   <body>
-
+<!-- header -->
+<header class="header">
 <nav class="navbar navbar-inverse bg-inverse navbar-toggleable-md">
   <div class="container">
     <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarsExampleContainer" aria-controls="navbarsExampleContainer" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,13 +36,14 @@
     </div>
   </div>
 </nav>
+</header>
 
+<!-- bodyer -->
 <div class="container">
   {{ content }}
 </div>
 
-
-
+<!-- footer -->
 <footer class="footer">
   <div class="container">
     <p>&copy; <a href="https://github.com/yangyuan" target="_blank">https://github.com/yangyuan<a></p>

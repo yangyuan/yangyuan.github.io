@@ -1,5 +1,6 @@
-body > .container {
-  padding: 20px 15px 0;
+.header {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .footer {
