@@ -101,29 +101,33 @@ worker_rlimit_nofile 每个 processes 打开的文件描述符限制。。。
 ## MYSQL
 
 MYSQL 虽然可以配置到服务器极限，但是极度不推荐。MYSQL 并不智能，不当的配置容易出现宕机，甚至数据损坏。
-我不是 MYSQL 专家，数据库主要用的也就是 MYSQL 和 MSSQL（偶尔用其他的，但是并不熟悉）。在我看来 MYSQL 和 MSSQL 一大区别就是配置上，MYSQL 要相当小心谨慎，一不小心就搞的要死要活。
 
-	vim my.cfg
-		bind-address		= 0.0.0.0
-		max_connection = 1024
-		
-		key_buffer		= 32M
-		innodb_buffer_pool_size = 1024M
-		innodb_log_file_size = 128M
-		
-		query_cache_limit	= 4M
-		query_cache_size        = 32M
-		expire_logs_days	= 8
-		max_binlog_size         = 128M
-		
-		read_rnd_buffer_size = 32M
-		table_open_cache = 1024
-		max_heap_table_size = 128M
-		tmp_table_size = 256M
-		max_length_for_sort_data = 65536
-		sort_buffer_size = 32M
+我不是 MYSQL 专家，数据库主要用的也就是 MYSQL 和 MSSQL（偶尔用其他的，但是并不熟悉）。在我看来 MYSQL 和 MSSQL 一大区别就是配置上，MYSQL 要相当小心谨慎，一不小心就搞的要死要活。
+```
+vim my.cfg
+	bind-address		= 0.0.0.0
+	max_connection = 1024
 	
+	key_buffer		= 32M
+	innodb_buffer_pool_size = 1024M
+	innodb_log_file_size = 128M
+	
+	query_cache_limit	= 4M
+	query_cache_size        = 32M
+	expire_logs_days	= 8
+	max_binlog_size         = 128M
+	
+	read_rnd_buffer_size = 32M
+	table_open_cache = 1024
+	max_heap_table_size = 128M
+	tmp_table_size = 256M
+	max_length_for_sort_data = 65536
+	sort_buffer_size = 32M
+```
 max_connection 不能过高，一个 connection 都会占有独立的内存空间，貌似至少 4MB，内存够吗？
+
 innodb 的两个重要参数 innodb_buffer_pool_size、innodb_log_file_size 根据内存来，/var/lib/mysql/ 的两个文件，是跟 innodb_log_file_size 一致的，调整需要手动删除。
+
 key_buffer 也就是 key_buffer_size 是 myisam 的核心参数，就算不主动使用 myisam 表，内置表、内存表、临时表都是 myisam 的，因此这个数值可以考虑提高。
+
 其他参数就属于看情况了，一般调整数据库表设计远比调整 MySQL 参数重要。
