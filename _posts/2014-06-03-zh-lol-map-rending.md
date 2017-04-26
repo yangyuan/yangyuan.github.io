@@ -4,7 +4,113 @@ title: 《英雄联盟》地图格式分析（含分析过程）
 ---
 
 
+
+
 这些分析是参考赛季四早期地图制作，赛季五之后的地图没有做分析，估计已经完全不一样了。这些都是我自己的分析哇，不是官方的呀，被我误导了不要来找我啊啊啊啊。。。
+
+这篇文章其实老早用英文发过，没啥关注度就没有继续研究，数据也采集自老版本的英文客户端，跟新版本应该有少量差距。
+本身并没有太多D3D营养，只是数据的逆向分析。
+
+一个地图场景主要由以下几部分组成
+room.nvr, room.mat, room.dsc
+.scb 和 .scos 文件
+Texture 和 AuxTexture 文件夹
+CFG 文件夹
+
+ROOM.NVR
+----
+room.nvr 是地图的主文件，其内容大概可以由这个C语言结构来概括。
+	struct lol_nvr {
+		char magic[4];
+		unsigned short unknown_1;
+		unsigned short unknown_2;
+		unsigned int count_material;
+		unsigned int count_vertex_list;
+		unsigned int count_index_list;
+		unsigned int count_model;
+		unsigned int count_unknown_3;
+		lol_nvr_material * materials;
+		lol_nvr_vertex_list * vertex_lists;
+		lol_nvr_index_list * index_lists;
+		lol_nvr_model * models;
+		lol_nvr_unknow3 * unknown_3s;
+	};
+### magic
+数值为 "NVR\0	"，
+### unknown_1、unknown_2
+数值为 9、1 应该是版本标志。
+### count_*
+对象的计数器。
+其中 count_vertex_list 和 count_index_list 理论上应该相同。
+### materials
+材质数据
+### vertex_lists 和 index_lists
+定点和顶点索引数据
+### models
+模型，模型的定点和索引，在 vertex_lists 和 index_lists 中。
+### unknown_3s
+还不清楚咯。可能是一些地图细节动画呀，粒子信息啊啥的。
+
+对象结构细节
+----
+	struct lol_nvr_material {
+		char name[256];
+		float emissive_color[3];
+		float blend_color[4];
+		char texture_filename[336];
+		float opacity;
+		char blend_filename[2364];
+	};
+	struct lol_nvr_vertex_list {
+		int size;
+		float * vertices;
+	};
+
+	struct lol_nvr_index_list {
+		int size;
+		unsigned d3dfmt; // = D3DFMT_INDEX16
+		unsigned short * indices;
+	};
+	
+	struct lol_nvr_model {
+		int flag_1;
+		int flag_2;
+		float b[10];
+		int material;
+		int model[12];
+	};
+	
+	struct lol_nvr_unknown_3 {
+		float a[6];
+		int b[4];
+	};
+熟悉3D的话，多数很容易看懂。
+额外的，lol_nvr_vertex_list.vertices 和 lol_nvr_model.model有一些细节问题：
+
+lol_nvr_vertex_list.vertices 可能有下面两种情况
+	struct lol_nvr_vertex_1 {
+		float position[3];
+		float normals[3];
+		float uv[2];
+		char unknow[4];
+	};
+	struct lol_nvr_vertex_2 {
+		float position[3];
+	};
+lol_nvr_model.model 则包含了两个这样的结构
+	struct lol_nvr_model_model {
+		int vetex_index;
+		int vetex_offset;
+		int vetex_length;
+		int index_index;
+		int index_offset;
+		int index_length;
+	};
+第一个指向一个lol_nvr_vertex_1，第二个则指向一个lol_nvr_vertex_2。
+
+其他信息
+----
+Material 的材质文件能够在 Texture 文件夹找到，但是是以 .dds 结尾，而非.tga。
 
 ## 场景构成
 
