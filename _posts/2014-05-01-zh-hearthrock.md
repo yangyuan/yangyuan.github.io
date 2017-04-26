@@ -5,6 +5,27 @@ title: Hearthrock 炉石传说简易机器人 实现原理
 
 这段时间我开启了一个项目，起名叫 Hearthrock。由于自己有 .NET Assembly 的研究经验，加上 Hearthstone 是基于 Mono 的，简单分析了一下就发现了一个做炉石机器人的可能性。但是该项目仅限AI研究和技术学习，禁止商业化使用。
 
+
+## 炉石机器人 Hearthrock 针对 2.5.0.8416 版本更新
+
+代码依然在我的 github 上 [url]https://github.com/yangyuan/hearthrock[/url]
+
+此次是炉石全版本更新，大致看了一下，多个版本还是统一的代码，只是界面布局不一样。
+换句话说，此次更新更多的是来自兼容 iPhone、Andriod 手机版的更新。
+
+各种 ID 做了重新整理，不过我感觉安排还是不合理，还会大改。
+InputManager 为了适应更多的客户端的输入情况，做了很多逻辑修改。（我看了代码之后才知道卡片还能双击）
+用了更多的 .NET Assembily，准确的讲是 Mono 的 .NET Assembily，这可能是来自 Unity3D 的更新。
+
+Hearthrock 主要都是兼容性改动。
+	AdventureId  ==> AdventureDbId
+	AdventureModeId ==> AdventureModeDbId
+	MissionId ==> ScenarioDbId 
+	InputManager.HandleClickOnCard() 调用修改
+	InputManager.DropHeldCard() 调用修改
+
+不知道什么时候加入的 InputManager 的 Active 属性也许能够实现不占用鼠标的机器人，但我还没有去实验证实，忙着研究别的。 
+
 https://github.com/yangyuan/hearthrock
 
 ## 实现原理：修改游戏文件
