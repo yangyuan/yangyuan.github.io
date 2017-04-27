@@ -37,7 +37,7 @@ url: https://yangyuan.github.io
 
 permalink: /post/:year-:month-:day-:title/
 
-paginate: 15
+paginate: 10
 paginate_path: "/posts/:num/"
 
 # Jekyll 3 now only supports Kramdown for Markdown

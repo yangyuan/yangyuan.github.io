@@ -17,3 +17,8 @@ article {
 .date {
     padding: 0px 0px 15px 0px;
 }
+
+.i_p_datetime {
+    color: #999;
+    padding: 0px 0px 8px;
+}
