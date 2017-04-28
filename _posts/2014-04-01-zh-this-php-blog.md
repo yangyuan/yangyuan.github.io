@@ -3,61 +3,91 @@ layout: post
 title: 本博客程序说明
 ---
 
-博客の代码 博客本身没开源，因为很多技术细节不适合公开，尤其是跟第三方服务通讯的部分。
-我整理出了一些有价值的东西，开放在我的 GITHUB 上：[url]https://github.com/yangyuan/cms-utils[/url]。
+2017-04-28 更新：
+
+我已经把博客迁移到 GitHub 上，本篇文章介绍的是原有博客程序的设计和实现。跟现在的博客没有直接关系。
+原博客本身没开源，有客户在使用，很多技术细节不适合公开，尤其是跟第三方服务通讯的部分。
+
+我之前有整理出了一些有价值的东西，开放在我的 GitHub 上：
+https://github.com/yangyuan/cms-utils
+
+## 博客の代码
 
 ### 代码部分：纯 PHP
+
 使用单纯的 PHP，除了对于数据库的 PDO 驱动，没有其他非默认模块和第三方模块的要求，也没有其他 PHP 框架的要求。
 
 ### 网页样式：严格 W3C 标准，兼容 IE6
-兼容 IE6 也算是是一个基本技能。
+
+兼容 IE6 也算是是一个基本技能。（作者注：博客程序写于 2012 年，当时 IE6 有相当的市场份额。）
+
 有些东西可以不显示，如圆角边框、CANVAS，但是整体结构不能走形。
 
 ### 编辑格式：兼顾纯文本和 HTML
-在这件事情上我是有强迫症的。
-1、我认为文章里的 `<` 符号之类，在存储的时候不应该变成 `&lt;`，因为这种 escape 是可能出现跟原文中自己的一些文字混淆的（毕竟程序员经常需要贴代码）。
-2、我认为程序员写文章，应该跟写文档一样，通用、严谨、不花哨。很多时候是只能写纯文本的东西的，所以技术文章要考虑纯文本可读。
-因此我重新设计了一个纯文本编辑和转码方案，以纯文本为基础，兼顾了 HTML 显示的需要。
 
-排版の语法
-====
+在这件事情上我是有强迫症的。
+
+1. 我认为文章里的 `<` 符号之类，在存储的时候不应该变成 `&lt;`，因为这种 escape 是可能出现跟原文中自己的一些文字混淆的（毕竟程序员经常需要贴代码）。
+2. 我认为程序员写文章，应该跟写文档一样，通用、严谨、不花哨。很多时候是只能写纯文本的东西的，所以技术文章要考虑纯文本可读。
+
+因此我重新设计了一个纯文本编辑和转码方案，以纯文本为基础，兼顾了 HTML 显示的需要。
+（作者注：后来我发现我的设计跟 asciidoc 的设计几乎兼容，看来大家都发现了 MarkDown 的潜在问题，并且都认为流格式是解决方案。）
+
+## 排版の语法
 
 ### 正文和代码
+
 正文行和代码行的区分点，就在于第一个符号是否为 TAB。
+
 行起为 TAB 的就是代码行，连续的代码行被看作一个代码块，剩下的就是正文。
 
 ### MARKDOWN
+
 选取了部分 MARKDOWN 语法。
-	标题 H1
-	===========
-	标题 H2
-	-----------
-	### 标题 H3
-	---- 横线
-	` `` 行内代码 
+
+```
+标题 H1
+===========
+标题 H2
+-----------
+### 标题 H3
+---- 横线
+` `` 行内代码 
+```
 
 ### BBCODE
+
 BBCODE 用于给文章添加一些小元素，但在这个博客里，BBCODE 的使用更严格，且效果不跨行，目前支持的内容有：
+
 	[b] [i] [u] [s] [sup] [sub] [url] [img]
+
 其中 `[url]`、`[img]` 是可以有额外属性的，但是不支持自闭合。
 
 ### 描述符
+
 描述符用于提供额外渲染参数，本身不可见，但是必须独占一行（描述符后的换行符会被丢弃），格式为 `[!key=value,tag]`。
+
 目前支持的有 `[!code=php]`，`[!html]`，也在考虑支持 `[!markdown]`、`[!quote]`、`[!tag=gotohere]` 等。
+
 描述符的影响范围和方式各不一样，`[!code=php]` 代表以后的代码块，优先使用 PHP 进行高亮渲染，而 `[!html]` 代表下一个代码块，是 HTML 直接显示。
 
 ### 歧义和兼容
+
 这个语法用到的关键字符很少，触发语法也严格，一般文章的文字部分，再怎么也不会有这些吧：
+
 	==== ---- ### ` `` [ ][/ ] [! ] \t
+	
 代码块里没有任何转义，无序考虑，放心贴代码。
+
 BBCODE 作用范围为文本块中的文本区域，所以如果万一需要在文本区使用 `[]`，最好使用行内代码的方式。
 
-排版语法の历史
-====
+## 排版语法の历史
+
 我的参考方案有 RFC、MAN、BBCODE、MARKDOWN。
-[B]RFC & MAN[/B]：RFC 和 MAN 的文本格式阅读非常方便，只要文本遵从约定，就能保证阅读起来很方便。
-[B]BBCODE[/B]：BBCODE 使用了自然语言不使用的 `[]` 符号，避免 `<` 的 HTML 和自然语言冲突的问题，BBCODE 也简化了一些 HTML 语义，在各种 CMS 中使用非常广泛。
-[B]MARKDOWN[/B]：MARKDOWN 就不用多说了。
+
+* **RFC & MAN**：RFC 和 MAN 的文本格式阅读非常方便，只要文本遵从约定，就能保证阅读起来很方便。
+* **BBCODE**：BBCODE 使用了自然语言不使用的 `[]` 符号，避免 `<` 的 HTML 和自然语言冲突的问题，BBCODE 也简化了一些 HTML 语义，在各种 CMS 中使用非常广泛。
+* **MARKDOWN**：MARKDOWN 就不用多说了。
 
 ### 最初の设计
 我在最初设计里，我参考 STACKOVERFLOW 的做法，使用了一种 MARKDOWN 兼容的语义，且使用多个空格来实现整段代码。
@@ -77,8 +107,7 @@ BBCODE 作用范围为文本块中的文本区域，所以如果万一需要在�
 取消了数字序号触发标题，取消了 `[code]`、`[html]`、`[quote]`，但添加了描述符 `[! ]`，利用描述符来控制代码段的属性。
 正在考虑添加行元素描述符如 `[!hostname]`，`[!var=]`，但说实话我有点后悔使用 `!` 符号，因为它太特么像逻辑取反。也许 `[# ]` 是更好的选择，不过仔细想想，鉴于可能会有 `[# ] [. ]` 配合，所以先这样吧。
 
-网页の样式
-====
+## 网页の样式
 
 ### 表单控件的垂直对齐
 不同表单控件有着不同的默认 CSS，当这些 CSS 属性被强制修改时，可能会丢失一些默认样式，导致看起来怪怪的。
@@ -90,28 +119,35 @@ BBCODE 作用范围为文本块中的文本区域，所以如果万一需要在�
 	当然，IE6不支持input[type=text]这种选择器，所以利用class做定义。
 
 ### 默认字体
+
 	网页字体：Verdana, Geneva, Microsoft Yahei, Segoe UI Symbol, sans-serif;
 	正文字体：Segoe UI, Lucida Grande, Microsoft Yahei, Segoe UI Symbol, sans-serif;
 	代码字体：Consolas, Lucida Console, Courier New, Microsoft Yahei, Segoe UI Symbol, monospace;
+	
 首先 Verdana, Geneva, sans-serif 是非常常见的英文网页组合。正文优先使用 Segoe UI，Lucida Grande，分别是在 Windows 和 Mac 上非常棒的字体。代码则优先使用 Consolas、Lucida Console，然后补上人人都有的 Courier New，目的是避免触发 monospace 在某些浏览器上的 BUG。
+
 Mac 和 比较新的 Linux 上，sans-serif 能匹配到不错的中文字体，Windows 下却是点阵新宋，所以补上 Microsoft Yahei。
+
 至于 Segoe UI Symbol 则是经典的大型字体，可以处理一些 emoji 之类。
 
 ### 编辑器
+
 由于编辑器只有我自己用，所以给自己降低了难度。
-1、纯文本编辑，直接使用 textarea。
-2、利用 JS 实现了 TAB、SHIFT-TAB、以及换行时候保持缩进。
-3、TAB 显示长度为 4。添加 CSS：
-	tab-size:4;
+1. 纯文本编辑，直接使用 textarea。
+2. 利用 JS 实现了 TAB、SHIFT-TAB、以及换行时候保持缩进。
+3. TAB 显示长度为 4。添加 CSS：
+```css
+tab-size:4;
+```
 
 ### 语法（词法）高亮
+
 用纯正则实现词法高亮，是我一直以来的一个想法。这次我就干脆利用 PHP 从服务端实现了词法高亮。
 但当然，词法高亮通常还不满足需求，我另外也添加了一些语法高亮，主要是关键词高亮，但是，当然不完整。
 
-这段时间练口语，考驾照，代码和博客就少点。
+## 博客の部署
 
-
-博客托管在 BAE 3.0，用 PHP 开发，既是我的博客，又是我的一个实验平台。
+博客托管在 BAE 3.0，用 PHP 开发，既是我的博客，又是我的一个实验平台。（作者注：已经迁移出 BAE。）
 有时候一拍脑袋就添加个东西，也有很多半成品功能隐藏其中。
 
 备份
@@ -122,52 +158,69 @@ Mac 和 比较新的 Linux 上，sans-serif 能匹配到不错的中文字体，
 ### 打包备份
 我的数据表非常精简，并且都是 txt 友好的，于是我就以纯文本的方式存下表的所有数据。
 BAE 3.0 支持 ziplib，我便直接使用了，不支持的话，可以考虑序列化到一个字符串然后 gzip。
-[!code=php]
-	$zip = new ZipArchive();
-	$zip->open($filename, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
-	foreach ($rows as $row) {
-		$zip->addFromString($row['id'].'/content', $row['content']);
-		unset($row['content']);
-		$zip->addFromString($row['id'].'/_', json_encode($row, JSON_UNESCAPED_UNICODE));
-	}
-	$zip->close();
-	header('Location: ./'.$filename);
+
+```php
+<?php
+$zip = new ZipArchive();
+$zip->open($filename, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
+foreach ($rows as $row) {
+	$zip->addFromString($row['id'].'/content', $row['content']);
+	unset($row['content']);
+	$zip->addFromString($row['id'].'/_', json_encode($row, JSON_UNESCAPED_UNICODE));
+}
+$zip->close();
+header('Location: ./'.$filename);
+```
 核心代码非常精简，就是读取表，然后转成 json 存进纯文本。`content` 列存放的是正文（我使用长 VARCHAR 而不是 TEXT），所以单独弄一个文件存放。
 
 ### 邮件备份
+
 其原理就是自己给自己发邮件，带个附件，就是刚才的 zip 打包。
-BAE 3.0 限制了 `mail()`，没有纯 php 用 socket 搞 SMTP 非常恶心人。我从 [url=https://github.com/PHPMailer/PHPMailer]PHPMailer[/url] 里抽取一部分代码完成了邮件发送代码。需要使用 TLS 协议和 587 端口（465 端口好像是另一种用法）
-需要填写明码密码，显得非常不安全，我当时选择使用的是小号。
-但最终还是移除了这部分代码，因为打包大小在慢慢增长，后来就改用了 BAE 自己的云存储。
+
+BAE 3.0 限制了 `mail()`，没有纯 php 用 socket 搞 SMTP 非常恶心人。我从 https://github.com/PHPMailer/PHPMailer 里抽取一部分代码完成了邮件发送代码。需要使用 TLS 协议和 587 端口（465 端口好像是另一种用法）
+
+需要填写明码密码，显得非常不安全，我当时选择使用的是小号。但最终还是移除了这部分代码，因为打包大小在慢慢增长，后来就改用了 BAE 自己的云存储。
 
 ### 云存储备份
+
 百度的开发者服务里有个 BCS，这跟百度云 PCS 非常接近。但 BCS 申请使用更容易，尤其是它的 “URL签名”，不需要走 OAUTH，对于开发自用应用非常合适。权限好控制，万一泄露了签名，重新生成 key 就可以了。
+
 过程很简单，申请 bucket，生成 URL签名，利用 CURL 直接把 zip 文件上传。
 
-图床
-----
+## 图床
+
 BAE 3.0 本地虽然可以读写，但不是永久的。
 
 ### 云存储图床
+
 依然是使用 BCS，选择特定的目录上传即可。
 
 ### 微博图床
+
 云存储是要花钱的，博客这点流量没什么，但我就怕盗图 和 XSS，一不小心流量就爆了。
-微博图床代码很早就被别人分析了，也有很多工具，我也有我自己的操作库：[url]https://github.com/yangyuan/weibo-publisher[/url]，并且只有一个文件。
+
+微博图床代码很早就被别人分析了，也有很多工具，我也有我自己的操作库：https://github.com/yangyuan/weibo-publisher ，并且只有一个文件。
+
 我没有去关注别人的代码，但在早期的几个代码里，我这个是唯一没有第三方库依赖的，用代码生成了密钥再调用 openssl。
+
 微博图片是不限制外链的，有很多应用都依赖这个功能。
+
 其实利用 picasa 和 flickr 也不限制外链，并且有 SDK，可是。。。【哔——】
 
 ### 综合方案
+
 实际上我上传图片时，首先上传到云存储，然后再上传一份一样的到微博。网页上显示的是微博图片，万一哪天微博不让外链了，就改回云存储。
 
-推送
-----
+## 推送
+
 ### 微博推送
-依然是使用 [url=https://github.com/yangyuan/weibo-publisher]weibo-publisher[/url]，可以在微博上发布一个类似“我发表了文章。。。。。”的效果，其实新浪博客自己就有这个效果。
+利用我自己的一个小工具： https://github.com/yangyuan/weibo-publisher ，可以在微博上发布一个类似“我发表了文章。。。。。”的效果，其实新浪博客自己就有这个效果。
+
 利用我这个 weibo-publisher 里发布的博客，是跟网页版的效果一样。不需要申请 APP、也不会显示 “来自 XXX” 什么的，也没有 quota 限制，唯一的缺陷是使用明码密码。当然也是有解决方案的，就是使用第三方处理加密或者部分密钥。
+
 使用小号试了一段时间，还是不太好意思在大号上用。。。
 
 ### 其他文章系统推送
+
 比如 wordpress 的 xmlrpc，blogger api 什么的，非常容易就可以生成兼容的 html 代码然后发布上去。
 但都存在一个问题，想推送的都被【哔——】了，所以弄个差不多我就扔那了。
