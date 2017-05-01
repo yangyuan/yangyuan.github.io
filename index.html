@@ -7,9 +7,6 @@ layout: index
     <article class="post">
       <h4><a href="{{ post.url }}">{{ post.title }}</a></h4>
       <div class="i_p_datetime">{{ post.date | date: '%B %d, %Y' }}</div>
-      <div class="entry">
-        {{ post.excerpt }}
-      </div>
     </article>
   {% endfor %}
 </div>
