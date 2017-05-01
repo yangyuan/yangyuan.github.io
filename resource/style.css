@@ -24,17 +24,17 @@ article {
     padding: 0px 0px 15px 0px;
 }
 
-.posts .post {
+#posts .post {
     padding: 8px 0px;
     border-top: 1px solid #d5d5d5;
 }
 
-.posts .date {
+#posts .date {
     color: #999;
-    padding: 0px 0px 8px;
 }
 
-.posts h2 {
+#posts h2 {
     font-size: 1.25rem;
-    font-weight: bold;
+    padding: 8px 0px;
+    margin: 0px;
 }
