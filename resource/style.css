@@ -14,6 +14,12 @@ article {
     font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial, "Microsoft Yahei", "Segoe UI Symbol", sans-serif;
 }
 
+.excerpt {
+    border-left: 1px solid #1abc9c;
+    padding-left: 1em;
+    margin: 1em 3em 1em 2em;
+}
+
 .date {
     padding: 0px 0px 15px 0px;
 }
