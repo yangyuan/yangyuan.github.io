@@ -8,9 +8,13 @@ layout: default
   <div class="date">
     Written on {{ page.date | date: "%B %e, %Y" }} <a href="https://github.com/yangyuan/yangyuan.github.io/blob/master/{{ page.path }}" target="_blank"><span>View on GitHub</span></a>
   </div>
-
+  
   <div class="markdown-body">
-    {{ content }}
+    {{ page.excerpt }}
+  </div>
+  
+  <div class="markdown-body">
+    {{ page.content | remove: page.excerpt }}
   </div>
 
   {% include disqus.html %}
