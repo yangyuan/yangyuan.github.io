@@ -23,6 +23,9 @@ https://github.com/yangyuan/cms-utils
 
 有些东西可以不显示，如圆角边框、CANVAS，但是整体结构不能走形。
 
+
+![alt text]({{ site.url }}/assets/images/2014-04-01-zh-this-php-blog-2.png)
+
 ### 编辑格式：兼顾纯文本和 HTML
 
 在这件事情上我是有强迫症的。
