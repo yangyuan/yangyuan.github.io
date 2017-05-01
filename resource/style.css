@@ -20,11 +20,21 @@ article {
     margin: 1em 3em 1em 2em;
 }
 
-.date {
+.meta {
     padding: 0px 0px 15px 0px;
 }
 
-.i_p_datetime {
+.posts .post {
+    padding: 8px 0px;
+    border-top: 1px solid #d5d5d5;
+}
+
+.posts .date {
     color: #999;
     padding: 0px 0px 8px;
+}
+
+.posts h2 {
+    font-size: 1.25rem;
+    font-weight: bold;
 }
