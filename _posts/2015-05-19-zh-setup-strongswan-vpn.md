@@ -34,7 +34,8 @@ title: 利用 StrongSwan 搭建多终端实用 VPN
 
 StrongSwan 是各个 Swan 中比较活跃的一个，他自己的定位是 IPsec for Linux。也就是说纯粹的 IPsec 方案。目前来讲，各大设备和较新的操作系统都不同程度支持 IKEv1、IKEv2，StrongSwan 也可配合 L2TPD 实现 L2TP/IPSec，不过比较折腾我就没配置这个。
 以 Ubuntu 为例介绍安装过程，请使用 5.0 之后的版本，5.0 之前的版本配置写法差太远，我使用的是 14.04 里的 5.1。(16.04, 5.3 测试通过。)
-按照基本包，和 xauth、eap-mschapv2 插件
+
+安装 strongswan 基本包、xauth 插件、eap-mschapv2 插件
 
 安装：
 ```
@@ -67,6 +68,22 @@ conn ikev1
 
 然后重启服务 `ipsec restart` 就可以了。
 登录的使用用户名密码分别是 `user`、`pass`，预共享密钥是 `secret`
+需要开启防火墙 UDP 500 和 4500 端口哟。
+
+iOS 设备应该可以顺利拨号了，但是要使用 VPN 还要配置转发。
+
+1. 编辑 /etc/sysctl.conf 后执行 `sysctl -p`
+```
+net.ipv4.ip_forward = 1
+```
+2. 配置 NAT 转发
+```
+iptables -t nat -A POSTROUTING -s 10.1.0.0/24 -o eth0 -j MASQUERADE
+```
+注意 iptables 配置并不是永久了，重启失效。网上有很多方法可以实现启动时自动配置，这里不介绍细节。
+
+这样就可以顺利科学上网了。
+
 要支持 IKEv2 就比较麻烦，因为需要使用证书。
 如果购买证书，需要在 openssl 的请求里添加选项 `extendedKeyUsage = serverAuth`，可以使用 `subjectAltName` 添加多个支持地址。
 自签名证书则比较简单了，网上有很多脚本，我不列举了，不行就请别人帮忙。
