@@ -4,6 +4,7 @@ title: 英雄联盟（北美）数据抓取
 ---
 
 北美官网上线了 Match 历史，无需登录，这样就不用官方 API 即可实现很多数据的抓取。
+
 网页上看得见的是三个入口
 * https://acs.leagueoflegends.com/v1/stats/player_history/{region}/{accountid}
 * https://acs.leagueoflegends.com/v1/stats/game/{region}/{gameid}
