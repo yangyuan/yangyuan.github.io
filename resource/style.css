@@ -38,3 +38,8 @@ article {
     padding: 8px 0px;
     margin: 0px;
 }
+
+.page_number {
+    padding-left: 15px;
+    padding-right: 15px;
+}
