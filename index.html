@@ -1,27 +1,371 @@
----
-layout: index
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Yuan Yang</title>
 
-<div id="posts">
-  {% for post in paginator.posts %}
-    <article class="post">
-      <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-      <div class="date">{{ post.date | date: '%B %d, %Y' }}</div>
-    </article>
-  {% endfor %}
+    <link rel="stylesheet" href="libs/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="libs/fontawesome/5.0.6/css/fontawesome-all.min.css">
+    <script src="libs/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="libs/popper.js/1.12.9/popper.min.js"></script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="px-md-4 mb-3 bg-white border-bottom box-shadow">
+    <div class="container d-flex flex-column flex-md-row align-items-center p-3 ">
+    <h5 class="my-0 mr-md-auto font-weight-normal">Yuan's Personal Website</h5>
+    <nav class="my-2 my-md-0 mr-md-3">
+        <a class="p-2 text-dark" href="#"></a>
+        <a class="p-2 text-dark" href="#"></a>
+    </nav>
+    </div>
 </div>
 
-<!-- Pagination links -->
-<div class="pagination">
-  {% if paginator.previous_page %}
-    <a href="{{ paginator.previous_page_path }}" class="previous">Previous</a>
-  {% else %}
-    <span class="previous">Previous</span>
-  {% endif %}
-    <span class="page_number">{{ paginator.page }} of {{ paginator.total_pages }}</span>
-  {% if paginator.next_page %}
-    <a href="{{ paginator.next_page_path }}" class="next">Next</a>
-  {% else %}
-    <span class="next ">Next</span>
-  {% endif %}
+<div class="container">
+    <div class="row pb-3">
+    <div class="col-4">
+        <div class="pr-3 py-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Yuan Yang</h5>
+                    <p class="card-text">
+                        Lives in Boston, MA<br />
+                        From Beijing, China</p>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Links</h6>
+                    <div class="card-text">
+                        <span><a href="https://github.com/yangyuan"><i class="fab fa-github-square"></i> Github</a></span><br />
+                        <span><a href="https://www.linkedin.com/in/yuan-yang-5b405686/"><i class="fab fa-linkedin"></i> Linkedin</a></span><br />
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Worked In</h6>
+                    <div class="card-text">
+                    <ul class="m-0 pl-3">
+                        <li>Microsoft China</li>
+                        <li>Chinese Academy of Science</li>
+                        <li>Beijing Ninestars Era Tech Co., Ltd.</li>
+                        <li>IBM China Development Lab</li>
+                    </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Education</h6>
+                    <div class="card-text">
+                        <ul class="m-0 pl-3">
+                            <li>Northeastern University</li>
+                            <li>Beijing Institute of Technology</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-8">
+        <div class="pt-3 pb-1">
+            <h2 class="font-weight-light">PERSONAL STATEMENT</h2>
+            <div class="mt-4">
+                <p>
+                    Hi, I am Yuan. Right now I am a student in Northeastern University in Boston, but I have 4 years working experiences before I came here.
+                    I'll graduate at the end of April and apt to find an RA or SDE position.
+                </p>
+                <p>
+                    My interests are mainly on Artificial Intelligence related technologies, such as Machine Learning, Natural Language Processing and Neural Network.
+                </p>
+            </div>
+        </div>
+        <div class="pt-3 pb-1">
+            <h2 class="font-weight-light">MAIN EXPERIENCES</h2>
+            <div class="mt-4 text-right">
+                <div class="row mb-1">
+                    <span class="col-4">Machine Learning</span>
+                    <span class="col-8">
+                        <div class="progress mt-1">
+                        <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 60%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </span>
+                </div>
+                <div class="row mb-1">
+                    <span class="col-4">Cloud Computing</span>
+                    <span class="col-8">
+                        <div class="progress mt-1">
+                        <div class="progress-bar progress-bar-striped bg-warning" role="progressbar" style="width: 80%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </span>
+                </div>
+                <div class="row mb-1">
+                    <span class="col-4">Web Development</span>
+                    <span class="col-8">
+                        <div class="progress mt-1">
+                        <div class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 100%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </span>
+                </div>
+                <div class="row mb-1">
+                    <span class="col-4">Operating System</span>
+                    <span class="col-8">
+                        <div class="progress mt-1">
+                        <div class="progress-bar progress-bar-striped bg-danger" role="progressbar" style="width: 40%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </span>
+                </div>
+                <div class="row mb-1">
+                    <span class="col-4">Security/Encryption</span>
+                    <span class="col-8">
+                        <div class="progress mt-1">
+                        <div class="progress-bar progress-bar-striped bg-info" role="progressbar" style="width: 40%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="pt-3 pb-1">
+            <h2 class="font-weight-light">TECHNICAL SKILLS</h2>
+            <div class="mt-4 row">
+                <div class="col-6">
+                    <div class="row">
+                        <span class="col-6 text-right">C#</span>
+                        <span class="col-6 text-danger">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">Python</span>
+                        <span class="col-6 text-danger">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">JavaScript</span>
+                        <span class="col-6 text-danger">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">Java</span>
+                        <span class="col-6 text-danger">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">C/C++</span>
+                        <span class="col-6 text-danger">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="row">
+                        <span class="col-6 text-right">.NET Framework</span>
+                        <span class="col-6 text-success">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">Tensorflow</span>
+                        <span class="col-6 text-success">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">Angular/React</span>
+                        <span class="col-6 text-success">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">J2EE</span>
+                        <span class="col-6 text-success">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                    <div class="row">
+                        <span class="col-6 text-right">WIN32/COM</span>
+                        <span class="col-6 text-success">
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="far fa-star"></span>
+                            <span class="far fa-star"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <hr>
+
 </div>
+
+
+
+
+
+<div class="container mt-5">
+    <h2 class="font-weight-light">PORTFOLIO (not include the projects from work)</h2>
+    <div><p>Below are all my personal open-source projects. If you want to know my projects from work please check my Linkedin.</p></div>
+    <div class="row py-2">
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Natural Language Processing, Neural Network</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">Neural Network Based QA Model</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Research Project</div>
+                    <p class="card-text mb-auto">A neural network based question answering project. Based on R-NET (a model designed by Microsoft) implemented with Tensorflow.</p>
+                    <span>
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/blank.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Encryption, Reverse Engineering, Game Development</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">Hearthrock: Hearthstone® Bot Engine</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Side Project, Research Project</div>
+                    <p class="card-text mb-auto">Hearthrock is an open source Hearthstone® bot engine for artificial intelligence scientists. With Hearthrock you can implement your Hearthstone® bot with any programming language.</p>
+                    <span>
+                        <a href="https://github.com/yangyuan/hearthrock"><i class="fab fa-github"></i> Source Code</a>
+                        <a href="https://yangyuan.github.io/hearthrock/"><i class="fas fa-home"></i> Project Home Page</a>
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/blank.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Windows Developing</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">The Meow IME</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Side Project</div>
+                    <p class="card-text mb-auto">IME Framework based on Text Services Framework.</p>
+                    <span>
+                        <a href="https://github.com/yangyuan/meow"><i class="fab fa-github"></i> Source Code</a>
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/blank.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Windows Developing</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">Rabbit: Windows Bot Engine</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Side Project</div>
+                    <p class="card-text mb-auto">Rabbit is designed to use programs to simulate human inputs. Which might be useful in some boring repeating tasks or game bots.</p>
+                    <span>
+                        <a href="https://github.com/yangyuan/rabbit"><i class="fab fa-github"></i> Source Code</a>
+                        <a href="https://pypi.python.org/pypi/rabbit-bot/"><i class="fab fa-python"></i> Python Package</a>
+                        <a href="https://www.npmjs.com/package/rabbit-bot"><i class="fab fa-js"></i> JavaScript Package</a>
+
+
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/blank.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Interpreter, Functional Programming Languages</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">Racket.js</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Toy Project</div>
+                    <p class="card-text mb-auto">Racket (Lang) Interpreter on Web.</p>
+                    <span>
+                        <a href="https://github.com/yangyuan/racket.js"><i class="fab fa-github"></i> Source Code</a>
+                        <a href="https://yangyuan.github.io/racket.js/"><i class="fa fa-rocket"></i> Live Demo</a>
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/blank.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card flex-md-row box-shadow">
+                <div class="card-body d-flex flex-column align-items-start">
+                    <strong class="d-inline-block mb-2 text-success">Web Development, Game Development, Reinforcement Learning</strong>
+                    <h3 class="mb-0">
+                        <a class="text-dark" href="#">Flappybird Bot</a>
+                    </h3>
+                    <div class="mb-1 text-muted">Research Project, Toy Project</div>
+                    <p class="card-text mb-auto">Flappybird Bot Reinforcement Agent on Web</p>
+                    <span>
+                        <a href="https://github.com/yangyuan/flappybird"><i class="fab fa-github"></i> Source Code</a>
+                        <a href="https://yangyuan.github.io/flappybird/"><i class="fa fa-rocket"></i> Live Demo</a>
+                    </span>
+                </div>
+                <img class="card-img-right flex-auto d-none d-md-block m-1" src="assets/img/flappybird.png" style="width: 256px; height: 256px;">
+            </div>
+        </div>
+    </div>
+
+    <footer class="pt-4 my-md-5 pt-md-5 border-top">
+        <div class="row">
+            <div class="col-12 col-md">
+                <small class="d-block mb-3 text-muted">&copy; 2018</small>
+            </div>
+        </div>
+    </footer>
+</div>
+
+</body>
+</html>
